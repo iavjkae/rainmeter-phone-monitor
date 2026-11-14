@@ -8,9 +8,10 @@ int WINAPI wWinMain(HINSTANCE h, HINSTANCE, LPWSTR, int) {
     wc.hInstance = h;
     wc.lpszClassName = L"PhoneFPSTest";
     RegisterClassW(&wc);
-    HWND win = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, wc.lpszClassName,
-                               L"FPS capture verification", WS_POPUP, 3700, 2000, 64, 64, nullptr,
-                               nullptr, h, nullptr);
+    HWND win =
+        CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, wc.lpszClassName,
+                        L"FPS capture verification", WS_POPUP, GetSystemMetrics(SM_CXSCREEN) - 80,
+                        GetSystemMetrics(SM_CYSCREEN) - 80, 64, 64, nullptr, nullptr, h, nullptr);
     DXGI_SWAP_CHAIN_DESC sd{};
     sd.BufferDesc.Width = 64;
     sd.BufferDesc.Height = 64;

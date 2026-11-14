@@ -270,7 +270,7 @@ data += sec(
     IfTrueAction='[!SetOption FPSStateLabel Text "启用帧率采集 →"][!SetOption FPSStateLabel FontColor "#Accent#"]',
     IfFalseAction='[!SetOption FPSStateLabel Text "帧率采集中"][!SetOption FPSStateLabel FontColor "#Mute#"]',
 )
-(A / "Measures.inc").write_text(data, encoding="utf-16")
+(A / "Measures.inc").write_text(data, encoding="utf-16", newline="\n")
 for name, palette in themes.items():
     s = (
         "[Variables]\nS=1\nBackgroundHex=FF\nBlackAlpha=0\nOpacityLabel=背景\nBlackLabel=纯黑底\nDimLabel=低亮\nOnLabel=开\nOffLabel=关\n"
@@ -476,5 +476,5 @@ for name, palette in themes.items():
     )
     s += txt("Footer", "LIVE / 1s", 800, 678, 10, "#Mute#", align="Center")
     s += txt("FooterTime", "[Time]", 1558, 672, 17, "#Mute#", face="Bahnschrift", align="Right")
-    (S / (name + ".ini")).write_text(s, encoding="utf-16")
+    (S / (name + ".ini")).write_text(s, encoding="utf-16", newline="\n")
 print("Generated three 1600x720 Rainmeter themes.")
