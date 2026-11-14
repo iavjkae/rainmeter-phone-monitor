@@ -1,0 +1,36 @@
+stages:
+  - lint
+  - build
+
+default:
+  image: python:3.12-bookworm
+
+lint:
+  stage: lint
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends lua5.1
+    - python -m pip install --disable-pip-version-check ruff==0.14.4 clang-format==21.1.0 cmakelang==0.6.13
+  script:
+    - ruff check .
+    - ruff format --check .
+    - cmake-format --check CMakeLists.txt
+    - clang-format --dry-run --Werror src/*.cpp tests/*.cpp
+    - luac5.1 -p skins/PhoneMonitor/@Resources/DisplayControl.lua
+    - python tools/generate_themes.py
+    - git diff --exit-code -- skins
+    - python -m unittest discover -s tests -v
+
+cross-build:
+  stage: build
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends cmake ninja-build g++-mingw-w64-x86-64-posix
+  script:
+    - cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake -DCMAKE_BUILD_TYPE=Release -DPHONE_MONITOR_BUILD_PROBE=ON
+    - cmake --build build
+    - python tools/package.py
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 14 days
