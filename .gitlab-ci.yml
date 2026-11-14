@@ -4,6 +4,8 @@ stages:
 
 default:
   image: python:3.12-bookworm
+  tags:
+    - linux
 
 lint:
   stage: lint
