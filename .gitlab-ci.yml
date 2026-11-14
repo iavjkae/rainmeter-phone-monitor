@@ -1,38 +1,30 @@
-stages:
-  - lint
-  - build
+stages: [lint, build]
 
 default:
-  image: python:3.12-bookworm
-  tags:
-    - linux
+  image: debian:bookworm-slim
+  tags: [linux]
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends ca-certificates curl git g++
+    - curl -fsSL https://github.com/jdx/mise/releases/download/v2026.11.8/mise-v2026.11.8-linux-x64.tar.gz | tar -xz --strip-components=2 -C /usr/local/bin mise/bin/mise
+    - mise trust mise.toml
+    - mise install
 
 lint:
   stage: lint
-  before_script:
-    - apt-get update -qq
-    - apt-get install -y --no-install-recommends lua5.1
-    - python -m pip install --disable-pip-version-check ruff==0.14.4 clang-format==21.1.0 cmakelang==0.6.13
   script:
-    - ruff check .
-    - ruff format --check .
-    - cmake-format --check CMakeLists.txt
-    - clang-format --dry-run --Werror src/*.cpp tests/*.cpp
-    - luac5.1 -p skins/PhoneMonitor/@Resources/DisplayControl.lua
-    - python tools/generate_themes.py
+    - mise run lint
     - git diff --exit-code -- skins
-    - python -m unittest discover -s tests -v
 
-cross-build:
+build:
   stage: build
-  before_script:
-    - apt-get update -qq
-    - apt-get install -y --no-install-recommends cmake ninja-build g++-mingw-w64-x86-64-posix
   script:
-    - cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake -DCMAKE_BUILD_TYPE=Release -DPHONE_MONITOR_BUILD_PROBE=ON
-    - cmake --build build
-    - python tools/package.py
+    - mise run test
+    - apt-get install -y --no-install-recommends g++-mingw-w64-x86-64-posix
+    - mise exec -- cmake -S . -B build-cross -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake -DPHONE_MONITOR_BUILD_RUNTIME=ON -DCMAKE_BUILD_TYPE=Release
+    - mise exec -- cmake --build build-cross
+    - mise run setup
+    - mise exec -- uv run --frozen python tools/package.py --build-dir build-cross
   artifacts:
-    paths:
-      - dist/
+    paths: [dist/]
     expire_in: 14 days

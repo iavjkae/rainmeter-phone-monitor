@@ -1,0 +1,79 @@
+[tools]
+python = "3.12.13"
+uv = "0.12.13"
+cmake = "3.31.8"
+ninja = "1.13.2"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+UV_INDEX_URL = "https://pypi.org/simple"
+UV_DEFAULT_INDEX = "https://pypi.org/simple"
+UV_LINK_MODE = "copy"
+PYTHONUTF8 = "1"
+
+[tasks.setup]
+description = "Install locked development dependencies"
+run = "uv sync --locked --group dev"
+
+[tasks.generate]
+description = "Generate deterministic Rainmeter configurations"
+depends = ["setup"]
+run = "uv run --frozen python tools/generate_themes.py"
+
+[tasks.lint]
+description = "Check source, config, privacy boundaries, and generated files"
+depends = ["setup"]
+run = [
+  "uv run --frozen ruff check .",
+  "uv run --frozen ruff format --check .",
+  "uv run --frozen cmake-format --check CMakeLists.txt cmake/mingw-w64.cmake",
+  "uv run --frozen python tools/check.py",
+]
+
+[tasks.format]
+description = "Format editable source files"
+depends = ["setup"]
+run = [
+  "uv run --frozen ruff check --fix .",
+  "uv run --frozen ruff format .",
+  "uv run --frozen cmake-format -i CMakeLists.txt cmake/mingw-w64.cmake",
+  "uv run --frozen python tools/format_cpp.py",
+]
+
+[tasks.configure]
+description = "Configure the native build; use CXX to select the compiler"
+run = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release"
+
+[tasks.build]
+description = "Build the native runtime and contract tests"
+depends = ["configure"]
+run = "cmake --build build"
+
+[tasks.test]
+description = "Test core contracts using synthetic data"
+depends = ["build"]
+run = "ctest --test-dir build --output-on-failure"
+
+[tasks.check]
+description = "Run lint, build, and synthetic tests"
+depends = ["lint", "test"]
+
+[tasks.fetch-presentmon]
+description = "Download and verify the optional upstream collector"
+depends = ["setup"]
+run = "uv run --frozen python tools/fetch_presentmon.py"
+
+[tasks.package]
+description = "Stage a clean package without local overrides or runtime data"
+depends = ["setup", "build", "generate"]
+run = "uv run --frozen python tools/package.py"
+
+[tasks.package-fps]
+description = "Stage a clean package including the verified optional collector"
+depends = ["setup", "build", "generate", "fetch-presentmon"]
+run = "uv run --frozen python tools/package.py --with-presentmon"
+
+[tasks.smoke]
+description = "Validate DLL exports without reading hardware; --hardware is explicit opt-in"
+depends = ["setup", "build"]
+run = "uv run --frozen python tools/smoke_telemetry.py --dll build/PhoneTelemetry.dll"

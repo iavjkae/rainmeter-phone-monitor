@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
-#include <d3d11.h>
 #include <windows.h>
+
+#include <d3d11.h>
 int WINAPI wWinMain(HINSTANCE h, HINSTANCE, LPWSTR, int) {
     SetProcessDPIAware();
     WNDCLASSW wc{};

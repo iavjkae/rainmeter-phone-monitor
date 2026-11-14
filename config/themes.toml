@@ -1,0 +1,32 @@
+["Blue White"]
+Bg = "E6EDF6"
+Card = "F9FBFF"
+Text = "162137"
+Mute = "748198"
+Accent = "268BEB"
+Soft = "DCE6F3"
+Second = "8B9FC3"
+Edge = "D5DEEA"
+Mode = "BLUE"
+
+["Cloud"]
+Bg = "EEEDE8"
+Card = "FCFCF8"
+Text = "242B2A"
+Mute = "808A84"
+Accent = "608875"
+Soft = "E4E8E1"
+Second = "A2B39D"
+Edge = "E0E2DA"
+Mode = "CLOUD"
+
+["Graphite"]
+Bg = "08090B"
+Card = "15171B"
+Text = "F1F1EF"
+Mute = "858A95"
+Accent = "F25263"
+Soft = "282B32"
+Second = "828B9F"
+Edge = "202329"
+Mode = "OLED"

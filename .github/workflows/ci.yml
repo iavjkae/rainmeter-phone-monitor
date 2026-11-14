@@ -10,20 +10,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install lint dependencies
-        run: |
-          python -m pip install ruff==0.14.4 clang-format==21.1.0 cmakelang==0.6.13 PyYAML==6.0.3 lupa==2.6
-      - name: Python lint
-        run: |
-          ruff check .
-          ruff format --check .
-      - name: CMake format
-        run: cmake-format --check CMakeLists.txt
-      - name: Source and skin checks
-        run: python tools/check.py
+      - uses: jdx/mise-action@v3
+      - run: mise run lint
 
   build:
     runs-on: windows-latest
@@ -33,22 +21,17 @@ jobs:
         compiler: [msvc, mingw]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - uses: jdx/mise-action@v3
       - uses: ilammy/msvc-dev-cmd@v1
         if: matrix.compiler == 'msvc'
-      - name: Configure MSVC
-        if: matrix.compiler == 'msvc'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=cl -DPHONE_MONITOR_BUILD_PROBE=ON
-      - name: Configure MinGW
-        if: matrix.compiler == 'mingw'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DPHONE_MONITOR_BUILD_PROBE=ON
-      - run: cmake --build build
-      - name: Load native sensor plugin
-        run: python tools/smoke_telemetry.py --dll build/PhoneTelemetry.dll
-      - name: Stage package without optional vendor binary
-        run: python tools/package.py
+      - name: Select compiler
+        shell: pwsh
+        run: |
+          if ('${{ matrix.compiler }}' -eq 'msvc') { 'CXX=cl' >> $env:GITHUB_ENV }
+          else { 'CXX=g++' >> $env:GITHUB_ENV }
+      - run: mise run test
+      - run: mise run smoke
+      - run: mise run package
       - uses: actions/upload-artifact@v4
         with:
           name: phone-monitor-${{ matrix.compiler }}
