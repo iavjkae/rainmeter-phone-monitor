@@ -1,4 +1,4 @@
-"""Run repository checks; install clang-format, Lua and PowerShell first."""
+"""Run repository checks after installing the locked development dependencies."""
 
 import hashlib
 import shutil
@@ -24,9 +24,14 @@ def check() -> None:
     paths = [*ROOT.glob("src/*.cpp"), *ROOT.glob("tests/*.cpp")]
     run("clang-format", "--dry-run", "--Werror", *map(str, paths))
     compiler = shutil.which("luac") or shutil.which("luac5.1")
-    if not compiler:
-        raise RuntimeError("Lua compiler not found (luac or luac5.1)")
-    run(compiler, "-p", str(ROOT / "skins/PhoneMonitor/@Resources/DisplayControl.lua"))
+    lua_file = ROOT / "skins/PhoneMonitor/@Resources/DisplayControl.lua"
+    if compiler:
+        run(compiler, "-p", str(lua_file))
+    else:
+        from lupa.lua51 import LuaRuntime
+
+        LuaRuntime().execute("assert(loadfile(...))", str(lua_file))
+        print("Lua 5.1 syntax check passed (Lupa).")
     shell = shutil.which("pwsh") or shutil.which("powershell")
     if not shell:
         raise RuntimeError("PowerShell not found")

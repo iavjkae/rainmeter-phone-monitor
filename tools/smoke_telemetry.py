@@ -3,6 +3,7 @@
 import argparse
 import ctypes
 import math
+import sys
 from pathlib import Path
 
 
@@ -34,6 +35,7 @@ def smoke(path: Path) -> None:
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dll", type=Path, required=True)
     smoke(parser.parse_args().dll)
